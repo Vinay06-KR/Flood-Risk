@@ -29,6 +29,7 @@ THRESH_PATH = "models/thresholds.json"
 @st.cache_resource
 def load_resources(model_path=MODEL_PATH, thresh_path=THRESH_PATH):
     # try primary model path, fall back to demo model if tuned not present
+    err = None
     try:
         preproc, model, le = load_model(model_path)
     except FileNotFoundError:
@@ -38,11 +39,19 @@ def load_resources(model_path=MODEL_PATH, thresh_path=THRESH_PATH):
                 preproc, model, le = load_model(str(alt_path))
                 # update model_path so UI can report correct file
                 model_path = str(alt_path)
-            except Exception:
+            except Exception as e:
+                err = e
                 preproc, model, le = None, None, None
         else:
             preproc, model, le = None, None, None
+    except Exception as e:
+        # any other loading error (pickle incompatibility, missing deps, corruption, etc.)
+        err = e
+        preproc, model, le = None, None, None
+
     thresholds = {}
+    if err is not None:
+        st.write("Model load error:", repr(err))
     if Path(thresh_path).exists():
         with open(thresh_path, "r") as f:
             thresholds = json.load(f)
