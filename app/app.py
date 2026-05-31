@@ -108,6 +108,15 @@ with predict_tab:
         st.subheader("Single sample prediction")
         if not MODEL_AVAILABLE:
             st.warning("No trained model found. Put a model file at `models/xgb_flood_tuned.pkl` or run demo training to generate `models/xgb_flood.pkl`.")
+            if st.button("Train a small demo model now (quick)"):
+                with st.spinner("Training demo model (this may take a minute)..."):
+                    try:
+                        from src.demo_train import run_demo
+                        run_demo()
+                        st.success("Demo model trained and saved as `models/xgb_flood.pkl`.")
+                        st.experimental_rerun()
+                    except Exception as e:
+                        st.error(f"Demo training failed: {e}")
             submitted = False
             rainfall = soil = elevation = temperature = humidity = None
         else:
